@@ -1,346 +1,169 @@
-***********************************************
-NumPy: creating and manipulating numerical data
-***********************************************
+NumPy: creating and manipulating numerical data 
+================================================
 
-:authors: Emmanuelle Gouillart, Didrik Pinte, Gaël Varoquaux, and Pauli Virtanen
+:authors: Emmanuelle Gouillart, Didrik Pinte, Gaël Varoquaux
 
-.. currentmodule:: numpy
+.. topic:: The array: the basic tool for scientific computing
 
-Intro
-=====
+    .. image:: simple_histo.jpg
+       :align: right 
 
-What is Numpy
--------------
-
-**Python** has:
-
-    - built-in: lists, integers, floating point
-
-    - for numerics --- more is needed (efficiency, convenience)
-
-**Numpy** is:
-
-    - extension package to Python for multidimensional arrays
-
-    - closer to hardware (efficiency)
-
-    - designed for scientific computation (convenience)
-
-.. topic:: For example:
-
-    An array containing ---
-
+    Frequent manipulation of **discrete sorted datasets** :
+ 
     * discretized time of an experiment/simulation
 
     * signal recorded by a measurement device
 
-    * pixels of an image
+    * pixels of an image, ...
 
-    * ...
+    The **Numpy** module allows to 
 
-.. extension package to Python to support multidimensional arrays
+    * create such datasets in one shot
 
-.. diagram, import conventions
+    * realize batch operations on data arrays (no loops on their items)
 
-.. scope of this tutorial: drill in features of array manipulation in
-   Python, and try to give some indication on how to get things done
-   in good style
+    Data arrays := ``numpy.ndarray``
 
-.. a fixed number of elements (cf. certain exceptions)
-.. each element of same size and type
-.. efficiency vs. Python lists
+Creating NumPy data arrays
+--------------------------
 
-1. Basics I
-===========
+A small introductory example::
 
-Getting started
----------------
-
->>> import numpy as np
->>> a = np.array([0, 1, 2, 3])
->>> a
-array([0, 1, 2, 3])
-
-Reference documentation
------------------------
-
-- On the web: http://docs.scipy.org/
-
-- Interactive help:
-
-  .. code-block:: python
-
-     >>> help(np.array)
-     array(object, dtype=None, copy=True, order=None, subok=False, ndmin=0)
-
-     Create an array.
-
-     Parameters
-     ----------
-     object : array_like
-     ...
-
-     Examples
-     --------
-     >>> np.array([1, 2, 3])
-     array([1, 2, 3])
-     ...
-
-- Looking for something:
-
-  >>> np.lookfor('create array')
-  Search results for 'create array'
-  ---------------------------------
-  numpy.array
-      Create an array.
-  numpy.memmap
-      Create a memory-map to an array stored in a *binary* file on disk.
-  ...
-
-  >>> help(np.lookfor)
-  ...
-
-.. the import convention, reminder on python imports
-.. where to find the documentation
-.. using help(np.argsort), using lookfor('sort array')
-
-Creating arrays
----------------
-
-1-D
-
-    >>> a = np.array([0, 1, 2, 3])
+    >>> import numpy as np
+    >>> a = np.array([0, 1, 2])
     >>> a
-    array([0, 1, 2, 3])
-    >>> a.ndim
-    1
-    >>> a.shape
-    (4,)
-    >>> len(a)
-    4
-
-2-D, 3-D, ...
-
-.. code-block:: python
-
-    >>> b = np.array([[0, 1, 2], [3, 4, 5]])    # 2 x 3 array
+    array([0, 1, 2])
+    >>> print a
+    [0 1 2]
+    >>> b = np.array([[0., 1.], [2., 3.]])
     >>> b
-    array([[ 0,  1,  2],
-           [ 3,  4,  5]])
-    >>> b.ndim
-    2
-    >>> b.shape
-    (2, 3)
-    >>> len(b)     # returns the size of the first dimension
-    2
-
-    >>> c = np.array([[[1], [2]], [[3], [4]]])
-    >>> c
-    array([[[1],
-            [2]],
-
-           [[3],
-            [4]]])
-    >>> c.shape
-    (2, 2, 1)
+    array([[ 0.,  1.],
+           [ 2.,  3.]])
 
 In practice, we rarely enter items one by one...
 
-    * Evenly spaced::
+    * Evenly spaced values::
 
         >>> import numpy as np
-        >>> a = np.arange(10) # 0 .. n-1  (!)
+        >>> a = np.arange(10) # de 0 a n-1
         >>> a
         array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-        >>> b = np.arange(1, 9, 2) # start, end (exlusive), step
+        >>> b = np.arange(1., 9., 2) # syntax : start, end, step
         >>> b
-        array([1, 3, 5, 7])
+        array([ 1.,  3.,  5.,  7.])
 
-      or by number of points::
+      or by specifying the number of points::
 
-        >>> c = np.linspace(0, 1, 6)   # start, end, num-points
+        >>> c = np.linspace(0, 1, 6)
         >>> c
         array([ 0. ,  0.2,  0.4,  0.6,  0.8,  1. ])
         >>> d = np.linspace(0, 1, 5, endpoint=False)
         >>> d
         array([ 0. ,  0.2,  0.4,  0.6,  0.8])
 
-    * Common arrays::
+    * Constructors for common arrays::
 
-        >>> a = np.ones((3, 3))  # reminder: (3, 3) is a tuple
+        >>> a = np.ones((3,3))
         >>> a
         array([[ 1.,  1.,  1.],
                [ 1.,  1.,  1.],
                [ 1.,  1.,  1.]])
-        >>> b = np.zeros((2, 2))
+        >>> a.dtype
+        dtype('float64')
+        >>> b = np.ones(5, dtype=np.int)
         >>> b
+        array([1, 1, 1, 1, 1])
+        >>> c = np.zeros((2,2))
+        >>> c
         array([[ 0.,  0.],
                [ 0.,  0.]])
-        >>> c = np.eye(3)
-        >>> c
+        >>> d = np.eye(3)
+        >>> d
         array([[ 1.,  0.,  0.],
                [ 0.,  1.,  0.],
                [ 0.,  0.,  1.]])
-	>>> d = np.diag(np.array([1, 2, 3, 4, 5]))
-        >>> d
-        array([[1, 0, 0, 0, 0],
-               [0, 2, 0, 0, 0],
-               [0, 0, 3, 0, 0],
-               [0, 0, 0, 4, 0],
-               [0, 0, 0, 0, 5]])
-
-    * Random numbers (Mersenne Twister PRNG)::
-
-        >>> a = np.random.rand(4)              # uniform in [0, 1]
-        >>> a
-	array([ 0.58597729,  0.86110455,  0.9401114 ,  0.54264348])
-
-        >>> b = np.random.randn(4)             # gaussian
-        >>> b
-	array([-2.56844807,  0.06798064, -0.36823781,  0.86966886])
-
-	>>> c = np.random.rand(3, 3)
-        >>> c
-        array([[ 0.31976645,  0.64807526,  0.74770801],
-               [ 0.8280203 ,  0.8669403 ,  0.07663683],
-               [ 0.11527489,  0.11494884,  0.13503285]])
-
-        >>> d = np.random.zipf(1.5, size=(2, 8))  # Zipf distribution (s=1.5)
-        >>> d
-        array([[5290,    1,    6,    9,    1,    1,    1,    2],
-               [   1,    5,    1,   13,    1,    1,    2,    1]])
-
-        >>> np.random.seed(1234)                  # Setting the random seed
-        >>> np.random.rand(3)
-	array([ 0.19151945,  0.62210877,  0.43772774])
-        >>> np.random.seed(1234)
-        >>> np.random.rand(5)
-	array([ 0.19151945,  0.62210877,  0.43772774,  0.78535858,  0.77997581])
 
 
-.. array() constructor
 
-.. empty, zeros, arange, linspace
-
-.. EXE: construct 1 2 3 4 5
-.. EXE: construct -5, -4, -3, -2, -1
-.. EXE: construct 2 4 6 8
-.. EXE: look what is in an empty() array
-.. EXE: construct 15 equispaced numbers in range [0, 10]
-
-Basic data types
-----------------
-
-You probably noted the ``1`` and ``1.`` above. These are different
-data types:
-
->>> a = np.array([1, 2, 3])
->>> a.dtype
-dtype('int64')
-
->>> b = np.array([1., 2., 3.])
->>> b.dtype
-dtype('float64')
-
-Much of the time you don't necessarily need to care, but remember they
-are there.
-
------------------------------
-
-You can also choose which one you want:
-
->>> c = np.array([1, 2, 3], dtype=float)
->>> c.dtype
-dtype('float64')
-
-The **default** data type is floating point:
-
->>> a = np.ones((3, 3))
->>> a.dtype
-dtype('float64')
->>> b = np.linspace(0, 1, 6)
->>> b.dtype
-dtype('float64')
-
-There are also other types:
-
->>> d = np.array([1+2j, 3+4j, 5+6*1j])
->>> d.dtype
-dtype('complex128')
-
->>> e = np.array([True, False, False, True])
->>> e.dtype
-dtype('bool')
-
->>> f = np.array(['Bonjour', 'Hello', 'Hallo', 'Terve', 'Hej'])
->>> f.dtype
-dtype('S7')         # <--- strings containing max. 7 letters
-
-.. integer types, floating point types, complex numbers
-.. mention: int32, int64 vs. int
-.. mention: float32, float64 vs. float
-.. mention: astype
-
-.. EXE: study zeros(shape).dtype
-.. EXE: study array([1, 2, 3]).dtype
-.. EXE: study array([1, 2, 3.]).dtype
-.. EXE: study array([1+2j, 2, 3]).dtype
-.. EXE: study array([1, 2, 3]).dtype
-.. EXE: truncate a float array to an integer one
-.. EXE: round a float array to an integer one
-
-
-Basic visualization
--------------------
+Graphical data representation : matplotlib and Mayavi
+-----------------------------------------------------
 
 Now that we have our first data arrays, we are going to visualize them.
-
 **Matplotlib** is a 2D plotting package. We can import its functions as below::
 
-    >>> import matplotlib.pyplot as plt  # the tidy way
-    >>> # ... or ...
-    >>> from matplotlib.pyplot import *  # imports everything in the namespace
+    >>> import pylab
+    >>> # or
+    >>> from pylab import * # imports everything in the namespace
+ 
+    
+If you launched Ipython with python(x,y), or with ``ipython
+-pylab`` (under Linux), all the functions/objects of pylab are already
+imported, without needing ``from pylab import *``. In the remainder of this
+tutorial, we assume you have already run ``from pylab import *`` or ``ipython
+-pylab``: as a consequence, we won't write ``pylab.function()`` but directly
+``function``.
 
-If you launched Ipython with python(x,y), or with ``ipython -pylab``
-(under Linux), both of the above commands have been run.  In the
-remainder of this tutorial, we assume you have run
+**1D curve plotting**
 
-    >>> import matplotlib.pyplot as plt
+.. sourcecode:: ipython
 
-or are using ``ipython -pylab`` which does it automatically.
+    In [6]: a = np.arange(20)
+    In [7]: plot(a, a**2) # line plot
+    Out[7]: [<matplotlib.lines.Line2D object at 0x95abd0c>]
+    In [8]: plot(a, a**2, 'o') # dotted plot
+    Out[8]: [<matplotlib.lines.Line2D object at 0x95b1c8c>]
+    In [9]: clf() # clear figure
+    In [10]: loglog(a, a**2)
+    Out[10]: [<matplotlib.lines.Line2D object at 0x95abf6c>]
+    In [11]: xlabel('x') # a bit too small
+    Out[11]: <matplotlib.text.Text object at 0x98923ec>
+    In [12]: xlabel('x', fontsize=26) # bigger
+    Out[12]: <matplotlib.text.Text object at 0x98923ec>
+    In [13]: ylabel('y')
+    Out[13]: <matplotlib.text.Text object at 0x9892b8c>
+    In [14]: grid()
+    In [15]: axvline(2)
+    Out[15]: <matplotlib.lines.Line2D object at 0x9b633cc>
 
-**1D plotting**
+.. image:: plot.png
+   :align: center 
+   :scale: 80
+   
 
-.. plot::
+**2D arrays** (such as images)   
 
-   >>> x = np.linspace(0, 3, 20)
-   >>> y = np.linspace(0, 9, 20)
-   >>> plt.plot(x, y)       # line plot
-   >>> plt.plot(x, y, 'o')  # dot plot
-   >>> plt.show()           # <-- shows the plot (not needed with Ipython)
+.. sourcecode:: ipython
 
-**2D arrays** (such as images)
+    In [48]: # 30x30 array with random floats btw 0 and 1
+    In [49]: image = np.random.rand(30,30) 
+    In [50]: imshow(image)
+    Out[50]: <matplotlib.image.AxesImage object at 0x9e954ac>
+    In [51]: gray()
+    In [52]: hot()
+    In [53]: imshow(image, cmap=cm.gray)
+    Out[53]: <matplotlib.image.AxesImage object at 0xa23972c>
+    In [54]: axis('off') # we remove ticks and labels    
 
-.. plot::
+.. image:: imshow.png
+   :align: center
+   :scale: 80
 
-   >>> image = np.random.rand(30, 30)
-   >>> plt.imshow(image)
-   >>> plt.gray()
-   >>> plt.show()
+There are many other features in matplotlib: color choice, marker size,
+latex font, inclusions within figures, histograms, etc.
 
-   >>> plt.pcolor(image)
-   >>> plt.hot()
-   >>> plt.colorbar()
-   >>> plt.show()
+To go further :
 
-.. seealso:: More on matplotlib  in the tutorial by Mike Müller tomorrow!
+    * matplotlib documentation
+      http://matplotlib.sourceforge.net/contents.html
 
+    * an example gallery with corresponding sourcecode
+      http://matplotlib.sourceforge.net/gallery.html
 
 **3D plotting**
 
-For 3D visualization, we can use another package: **Mayavi**. A quick example:
+For 3D visualization, we use another package: **Mayavi**. A quick example:
 start with **relaunching iPython** with these options:
-**ipython -pylab -wthread**  (or **ipython --pylab=wx** in IPython >= 0.10).
+**ipython -pylab -wthread**
 
 .. sourcecode:: ipython
 
@@ -361,21 +184,18 @@ start with **relaunching iPython** with these options:
 The mayavi/mlab window that opens is interactive : by clicking on the left mouse button
 you can rotate the image, zoom with the mouse wheel, etc.
 
-.. .. image:: potential.jpg
-..   :align: center
-..   :scale: 60
+.. image:: potential.jpg
+   :align: center
+   :scale: 60
 
 For more information on Mayavi :
 http://code.enthought.com/projects/mayavi/docs/development/html/mayavi/index.html
 
+Indexing 
+--------
 
-Indexing and slicing
---------------------
-
-.. XXX: rewrite
-
-The items of an array can be accessed and assigned to the same way as
-other Python sequences (``list``, ``tuple``) ::
+The items of an array can be accessed the same way as other Python sequences
+(``list``, ``tuple``) ::
 
     >>> a = np.arange(10)
     >>> a
@@ -383,10 +203,8 @@ other Python sequences (``list``, ``tuple``) ::
     >>> a[0], a[2], a[-1]
     (0, 2, 9)
 
-.. warning::
-
-   Indices begin at 0, like other Python sequences (and C/C++).
-   In contrast, in Fortran or Matlab, indices begin at 1.
+Warning! Indexes begin at 0, like other Python sequences (and C/C++).
+In Fortran or Matlab, indexes begin with 1.
 
 For multidimensional arrays, indexes are tuples of integers::
 
@@ -411,13 +229,14 @@ For multidimensional arrays, indexes are tuples of integers::
 
 Note that:
 
-* In 2D, the first dimension corresponds to rows, the second to columns.
-* for multidimensional ``a``,`a[0]` is interpreted by
+* In 2D, the first dimension corresponds to lines, the second to columns.
+* for an array ``a`` with more than one dimension,`a[0]` is interpreted by
   taking all elements in the unspecified dimensions.
 
-.. rubric:: Slicing
+Slicing
+-------
 
-Arrays, like other Python sequences can also be sliced::
+Like indexing, it's similar to Python sequences slicing::
 
     >>> a = np.arange(10)
     >>> a
@@ -435,7 +254,7 @@ Note that the last index is not included!::
 
     >>> sl = slice(1, 9, 2)
     >>> a = np.arange(10)
-    >>> b = np.arange(1, 20, 2)
+    >>> b = 2*a + 1
     >>> a, b
     (array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]), array([ 1,  3,  5,  7,  9, 11, 13, 15, 17, 19]))
     >>> a[sl], b[sl]
@@ -460,7 +279,7 @@ Of course, it works with multidimensional arrays::
            [ 0.,  0.,  1.,  0.,  0.],
            [ 0.,  0.,  0.,  1.,  0.],
            [ 0.,  0.,  0.,  0.,  1.]])
-    >>> a[2:4,:3] # 3rd and 4th rows, 3 first columns
+    >>> a[2:4,:3] #3rd and 4th lines, 3 first columns
     array([[ 0.,  0.,  1.],
            [ 0.,  0.,  0.]])
 
@@ -479,553 +298,731 @@ A small illustrated summary of Numpy indexing and slicing...
 .. image:: numpy_indexing.png
    :align: center
 
-
-Copies and views
-----------------
-
-A slicing operation creates a **view** on the original array, which is
-just a way of accessing array data. Thus the original array is not
-copied in memory.
-
-**When modifying the view, the original array is modified as well**::
+A slicing operation creates a **view** on the original array, which is just a way of
+accessing array data. Thus the original array is not copied in memory. *When
+modifying the view, the original array is modified as well**::
 
     >>> a = np.arange(10)
-    >>> a
+    >>> a 
     array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     >>> b = a[::2]; b
     array([0, 2, 4, 6, 8])
     >>> b[0] = 12
     >>> b
     array([12,  2,  4,  6,  8])
-    >>> a   # (!)
+    >>> a # a a été modifié aussi !
     array([12,  1,  2,  3,  4,  5,  6,  7,  8,  9])
 
+This behavior can be surprising at first sight... but it allows to save a lot
+of memory.
+
+
+Manipulating the shape of arrays
+---------------------------------
+
+The shape of an array can be retrieved with the ``ndarray.shape`` method which
+returns a tuple with the dimensions of the array::
+
     >>> a = np.arange(10)
-    >>> b = a[::2].copy()  # force a copy
-    >>> b[0] = 12
+    >>> a.shape
+    (10,)
+    >>> b = np.ones((3,4))
+    >>> b.shape
+    (3, 4)
+    >>> b.shape[0] # the shape tuple elements can be accessed
+    3
+    >>> # an other way of doing the same
+    >>> np.shape(b)
+    (3, 4)
+
+Moreover, the length of the first dimension can be queried with ``np.alen`` (by
+analogy with ``len`` for a list) and the total number of elements with
+``ndarray.size``::
+
+    >>> np.alen(b)
+    3
+    >>> b.size
+    12
+
+Several NumPy functions allow to create an array with a different shape, from
+another array::
+
+    >>> a = np.arange(36)
+    >>> b = a.reshape((6, 6))
+    >>> b
+    array([[ 0,  1,  2,  3,  4,  5],
+           [ 6,  7,  8,  9, 10, 11],
+           [12, 13, 14, 15, 16, 17],
+           [18, 19, 20, 21, 22, 23],
+           [24, 25, 26, 27, 28, 29],
+           [30, 31, 32, 33, 34, 35]])
+
+``ndarray.reshape`` returns a view, not a copy::
+
+    >>> b[0,0] = 10
+    >>> a 
+    array([10,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+           17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
+           34, 35])
+
+An array with a different number of elements can also be created with ``ndarray.resize``::
+
+    >>> a = np.arange(36)
+    >>> a.resize((4,2))
     >>> a
-    array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    array([[0, 1],
+           [2, 3],
+           [4, 5],
+           [6, 7]])
+    >>> b = np.arange(4)
+    >>> b.resize(3, 2)
+    >>> b
+    array([[0, 1],
+           [2, 3],
+           [0, 0]])
 
-This behavior can be surprising at first sight... but it allows to save both
-memory and time.
+A large array can be tiled with a smaller one::
 
-.. indices begin at 0  (as in Python)
-.. indexing elements
-.. slices: a[i:j:k] syntax, and a[slice(i, j, k)]
-.. indexing multidimensional arrays
-.. assignment with slices
+    >>> a = np.arange(4).reshape((2,2))
+    >>> a
+    array([[0, 1],
+           [2, 3]])
+    >>> np.tile(a, (2,3))
+    array([[0, 1, 0, 1, 0, 1],
+           [2, 3, 2, 3, 2, 3],
+           [0, 1, 0, 1, 0, 1],
+           [2, 3, 2, 3, 2, 3]])
 
-.. EXE: [1, 2, 3, 4, 5] -> [1, 2, 3]
-.. EXE: [1, 2, 3, 4, 5] -> [4, 5]
-.. EXE: [1, 2, 3, 4, 5] -> [1, 3, 5]
-.. EXE: [1, 2, 3, 4, 5] -> [2, 4]
-.. EXE: create an array [1, 1, 1, 1, 0, 0, 0]
-.. EXE: create an array [0, 0, 0, 0, 1, 1, 1]
-.. EXE: create an array [0, 1, 0, 1, 0, 1, 0]
-.. EXE: create an array [1, 0, 1, 0, 1, 0, 1]
-.. EXE: create an array [1, 0, 2, 0, 3, 0, 4]
-.. CHA: archimedean sieve
+Exercises : some simple array creations
+---------------------------------------
 
-Data files
-----------
+By using miscellaneous constructors, indexing, slicing, and simple operations
+(+/-/x/:), large arrays with various patterns can be created.
 
-.. rubric:: Text files
+**Example** : create this array::
 
-Example: ``populations.txt``::
+    [[ 0  1  2  3  4]
+     [ 5  6  7  8  9]
+     [10 11 12 13  0]
+     [15 16 17 18 19]
+     [20 21 22 23 24]]
 
-    1900	30e3	4e3	51300
-    1901	47.2e3	6.1e3	48200
-    1902	70.2e3	9.8e3	41500
-    ...
+**Solution**
 
->>> data = np.loadtxt('populations.txt')    # if in current directory
->>> data
-array([[  1900.,  30000.,   4000.,  51300.],
-       [  1901.,  47200.,   6100.,  48200.],
-       [  1902.,  70200.,   9800.,  41500.],
-...
+::
 
->>> np.savetxt('pop2.txt', data)
->>> data2 = np.loadtxt('pop2.txt')
+    >>> a = np.arange(25).reshape((5,5))
+    >>> a[2, 4] = 0
 
-.. note:: If you have a complicated text file, what you can try are:
+**Exercises** : Create the following array with the simplest solution::
 
-   - ``np.genfromtxt``
+    [[ 1.  1.  1.  1.]
+     [ 1.  1.  1.  1.]
+     [ 1.  1.  1.  2.]
+     [ 1.  6.  1.  1.]]
 
-   - Using Python's I/O functions and e.g. regexps for parsing
-     (Python is quite well suited for this)
+    [[0 0 0 0 0]
+     [2 0 0 0 0]
+     [0 3 0 0 0]
+     [0 0 4 0 0]
+     [0 0 0 5 0]
+     [0 0 0 0 6]]
 
-.. topic:: Navigating the filesystem in Python shells
 
-   *Ipython*
+Real data: read/write arrays from/to files
+------------------------------------------
 
-   .. sourcecode:: ipython
+Often, our experiments or simulations write some results in files. These results
+must then be loaded in Python as NumPy arrays to be able to manipulate them. We
+also need to save some arrays into files.
 
-       In [1]: pwd      # show current directory
-       '/home/user/stuff/2011-numpy-tutorial'
-       In [2]: cd ex
-       '/home/user/stuff/2011-numpy-tutorial/ex'
-       In [3]: ls
-       populations.txt	species.txt
+**Going to the right folder**
 
-   *Python* (here's yet one reason to use Ipython for interactive use :)
 
-   >>> import os
-   >>> os.getcwd()
-   '/home/user/stuff/2011-numpy-tutorial'
-   >>> os.chdir('ex')
-   >>> os.getcwd()
-   '/home/user/stuff/2011-numpy-tutorial/ex'
-   >>> os.listdir('.')
-   ['populations.txt',
-    'species.txt',
-    ...
-
-.. rubric:: Images
-
-.. plot::
-
-   >>> img = plt.imread('../../../data/elephant.png')
-   >>> img.shape, img.dtype
-   ((200, 300, 3), dtype('float32'))
-   >>> plt.imshow(img)
-   >>> plt.savefig('plot.png')
-   >>> plt.show()
-
-   >>> plt.imsave('red_elephant', img[:,:,0], cmap=plt.cm.gray)
-
-   This saved only one channel (of RGB)
-
-   >>> plt.imshow(plt.imread('red_elephant.png'))
-   >>> plt.show()
-
-   Other libraries:
-
-   >>> from scipy.misc import imsave
-   >>> imsave('tiny_elephant.png', img[::6,::6])
-   >>> plt.imshow(plt.imread('tiny_elephant.png'), interpolation='none')
-   >>> plt.show()
-
-.. .. rubric:: Raw binary data
 ..
-.. Avoid this -- often not portable, does not save data type or array
-.. shape, etc.:
-..
-.. >>> data.tofile('pop.dat')
-.. >>> np.fromfile('foo.dat', dtype=float)
-.. array([  1900.,  30000.,   4000.,  51300.,   1901.,  47200.,   6100.,
-.. ...
+    >>> import os, os.path 
+    >>> os.chdir('/home/gouillar/sandbox')
 
-.. rubric:: Numpy's own format
+    
+To move in a folder hierarchy:
 
->>> np.save('pop.npy', data)
->>> data3 = np.load('pop.npy')
+    * use the iPython commands: ``cd``, ``pwd``,
+      tab-completion.
 
-.. rubric:: Well-known (& more obscure) file formats
+    .. sourcecode:: ipython
+     
+      In [1]: mkdir python_scripts
+     
+      In [2]: cd python_scripts/ 
+      /home/gouillar/python_scripts
+     
+      In [3]: pwd
+      Out[3]: '/home/gouillar/python_scripts'
+     
+      In [4]: ls
+     
+      In [5]: np.savetxt('integers.txt', np.arange(10))
+     
+      In [6]: ls
+      integers.txt
 
-* HDF5: `h5py <http://code.google.com/p/h5py/>`__, `PyTables <http://pytables.org>`__
-* NetCDF: ``scipy.io.netcdf_file``, `netcdf4-python <http://code.google.com/p/netcdf4-python/>`__, ...
-* Matlab: ``scipy.io.loadmat``, ``scipy.io.savemat``
-* MatrixMarket: ``scipy.io.mmread``, ``scipy.io.mmread``
 
-... if somebody uses it, there's probably also a Python library for it.
+.. 
 
+    * os (system routines) and os.path (path management) modules::
 
-.. loadtxt, savez, load, fromfile, tofile
+    >>> import os, os.path  
+    >>> current_dir = os.getcwd()
+    >>> current_dir
+    '/home/gouillar/sandbox'
+    >>> data_dir = os.path.join(current_dir, 'data')
+    >>> data_dir
+    '/home/gouillar/sandbox/data'
+    >>> if not(os.path.exists(data_dir)):
+    ...     os.mkdir('data')
+    ...     print "created 'data' folder"
+    ...     
+    >>> os.chdir(data_dir) # or in Ipython : cd data
 
-.. real life: point to HDF5, NetCDF, etc.
+IPython can actually be used like a shell, thanks to its integrated features and
+the os module.
 
-.. EXE: use loadtxt to load a data file
-.. EXE: use savez and load to save data in binary format
-.. EXE: use tofile and fromfile to put and get binary data bytes in/from a file
-   follow-up: .view()
-.. EXE: parsing text files -- Python can do this reasonably well natively!
-   throw in the mix some random text file to be parsed (eg. PPM)
-.. EXE: advanced: read the data in a PPM file
+**Writing a data array in a file**
 
-Summary & Exercises
--------------------
+::
 
-* Creating arrays: ``array``, ``linspace``, ``arange``, ``zeros``, ``ones``, ``rand``
+    >>> a = np.arange(100)
+    >>> a = a.reshape((10, 10))
 
-* Data types: integers, floats, complex floats, and strings
+         
 
-* Simple plotting with Matplotlib: ``plot(x, y)``
+* Writing a text file (in ASCII)::
 
-* Indexing, slicing, and assignment into arrays --- slicing creates views
+    >>> np.savetxt('data_a.txt', a)
 
-* Reading data from files: ``loadtxt``, ``savetxt``, et al.
+* Writing a binary file (``.npy`` extension, recommended format) ::
 
+    >>> np.save('data_a.npy', a)
+
+**Loading a data array from a file**
+
+* Reading from a text file::
+
+    >>> b = np.loadtxt('data_a.txt')
+
+* Reading from a binary file::
+
+    >>> c = np.load('data_a.npy')
+
+.. topic:: To read matlab data files
+
+    ``scipy.io.loadmat`` : the matlab structure of a .mat file is stored as a
+    dictionary.
+
+**Opening and saving images: imsave and imread**
+
+::
+
+  >>> import scipy
+  >>> from pylab import imread, imsave, savefig
+  >>> lena = scipy.lena()
+  >>> imsave('lena.png', lena, cmap=cm.gray)
+  >>> lena_reloaded = imread('lena.png')
+  >>> imshow(lena_reloaded, cmap=gray)
+  <matplotlib.image.AxesImage object at 0x989e14c>
+  >>> savefig('lena_figure.png')
+
+.. image:: lena_figure.png
+   :align: center
+   :width: 60
+
+**Selecting a file from a list**
+
+Each line of ``a`` will be saved in a different file::
+
+    >>> for i, l in enumerate(a):
+    ...     print i, l
+    ...     np.savetxt('line_'+str(i), l)
+    ...     
+    0 [0 1 2 3 4 5 6 7 8 9]
+    1 [10 11 12 13 14 15 16 17 18 19]
+    2 [20 21 22 23 24 25 26 27 28 29]
+    3 [30 31 32 33 34 35 36 37 38 39]
+    4 [40 41 42 43 44 45 46 47 48 49]
+    5 [50 51 52 53 54 55 56 57 58 59]
+    6 [60 61 62 63 64 65 66 67 68 69]
+    7 [70 71 72 73 74 75 76 77 78 79]
+    8 [80 81 82 83 84 85 86 87 88 89]
+    9 [90 91 92 93 94 95 96 97 98 99]
+
+To get a list of all files beginning with ``line``, we use the ``glob`` module
+which matches all paths corresponding to a pattern. Example::
+
+    >>> import glob
+    >>> filelist = glob.glob('line*')
+    >>> filelist
+    ['line_0', 'line_1', 'line_2', 'line_3', 'line_4', 'line_5', 'line_6', 'line_7', 'line_8', 'line_9']
+    >>> # Note that the line is not always sorted
+    >>> filelist.sort()
+    >>> l2 = np.loadtxt(filelist[2])
+
+Note: arrays can also be created from Excel/Calc files, HDF5 files, etc.
+(but with additional modules not described here: xlrd, pytables, etc.).
+
+Simple mathematical and statistical operations on arrays
 --------------------------------------------------------
 
-.. rubric:: Worked example: Prime number sieve
+Some operations on arrays are natively available in NumPy (and are generally
+very efficient)::
 
-.. image:: prime-sieve.png
+    >>> a = np.arange(10)
+    >>> a.min() # or np.min(a)
+    0
+    >>> a.max() # or np.max(a)
+    9
+    >>> a.sum() # or np.sum(a)
+    45
 
-Compute prime numbers in 0--99, with a sieve
+Operations can also be run along an axis, instead of on all elements::
 
-* Construct a shape (100,) boolean array ``is_prime``,
-  filled with True in the beginning:
+    >>> a = np.array([[1, 3], [9, 6]])
+    >>> a
+    array([[1, 3],
+           [9, 6]])
+    >>> a.mean(axis=0) # the array contains the mean of each column 
+    array([ 5. ,  4.5])
+    >>> a.mean(axis=1) # the array contains the mean of each line
+    array([ 2. ,  7.5])
 
-  >>> is_prime = np.ones((100,), dtype=bool)
-
-* Cross out 0 and 1 which are not primes
-
-  >>> is_prime[:2] = 0
-
-* For each integer ``j`` starting from 2, cross out its higher multiples
-
-  >>> N_max = int(np.sqrt(len(is_prime)))
-  >>> for j in range(2, N_max):
-  ...     is_prime[2*j::j] = False
-
-* Skim through ``help(np.nonzero)``, and print the prime numbers
-
-* Follow-up:
-
-  - Move the above code into a script file named ``prime_sieve.py``
-
-  - Run it to check it works
-
-  - Convert the simple sieve to `the sieve of Eratosthenes
-    <http://en.wikipedia.org/wiki/Sieve_of_Eratosthenes>`__:
-
-    1. Skip `j` which are already known to not be primes
-
-    2. The first number to cross out is :math:`j^2`
-
-.. topic:: Reminder -- Python scripts:
-
-   A very basic script file contains::
-
-       import numpy as np
-       import matplotlib.pyplot as plt  # <- if you use it
-
-       # any numpy-using commands follow
-
-       a = np.array([1, 2, 3, 4])
-       print a
-
-   Run on command line::
-
-       python my_script_1_2.py
-
-   Or, in Python shell::
-
-       In [10]: %run my_script_1_2.py
-
-       >>> execfile('2_2_data_statistics.py')
-
---------------------------------------------------------
-
-.. rubric:: Exercise 1.1: Certain arrays
-
-Create the following arrays (with correct data types)::
-
-    [[ 1  1  1  1]
-     [ 1  1  1  1]
-     [ 1  1  1  2]
-     [ 1  6  1  1]]
-
-    [[0. 0. 0. 0. 0.]
-     [2. 0. 0. 0. 0.]
-     [0. 3. 0. 0. 0.]
-     [0. 0. 4. 0. 0.]
-     [0. 0. 0. 5. 0.]
-     [0. 0. 0. 0. 6.]]
-
-Par on course: 3 statements for each (53 & 54 characters)
-
---------------------------------------------------------
-
-.. rubric:: Exercise 1.2: Text data files
-
-Write a Python script that loads data from ``populations.txt`` and
-drop the last column and the first 5 rows. Save the smaller dataset to
-``pop2.txt``.
-
---------------------------------------------------------
-
-.. rubric:: Exercise 1.3: Tiling
-
-Skim through the documentation for ``np.tile``, and use this function
-to construct the array::
-
-    [[4 3 4 3 4 3]
-     [2 1 2 1 2 1]
-     [4 3 4 3 4 3]
-     [2 1 2 1 2 1]]
-
-
-2. Basics II
-============
-
-Elementwise operations
-----------------------
-
-With scalars:
-
->>> a = np.array([1, 2, 3, 4])
->>> a + 1
-array([2, 3, 4, 5])
->>> 2**a
-array([ 2,  4,  8, 16])
-
-All arithmetic operates elementwise:
-
->>> b = np.ones(4) + 1
->>> a - b
-array([-1.,  0.,  1.,  2.])
->>> a * b
-array([ 2.,  4.,  6.,  8.])
-
->>> j = np.arange(5)
->>> 2**(j + 1) - j
-array([ 2,  3,  6, 13, 28])
-
-.. warning:: **... including multiplication**
-
->>> c = np.ones((3, 3))
->>> c * c                   # NOT matrix multiplication!
-array([[ 1.,  1.,  1.],
-       [ 1.,  1.,  1.],
-       [ 1.,  1.,  1.]])
+Many other operations are available. We will discover some of them in this
+course.
 
 .. note::
 
-   Matrix multiplication:
+    Arithmetic operations on arrays correspond to operations on each individual
+    element. In particular, the multiplication is not a matrix multiplication
+    (**unlike Matlab**)! The matrix multiplication is provided by ``np.dot``::
 
-   >>> c.dot(c)
-   array([[ 3.,  3.,  3.],
-          [ 3.,  3.,  3.],
-          [ 3.,  3.,  3.]])
+        >>> a = np.ones((2,2))
+        >>> a*a
+        array([[ 1.,  1.],
+               [ 1.,  1.]])
+        >>> np.dot(a,a)
+        array([[ 2.,  2.],
+               [ 2.,  2.]])
 
-Comparisons:
+**Example** : diffusion simulation using a random walk algorithm
 
->>> a = np.array([1, 2, 3, 4])
->>> b = np.array([4, 2, 2, 4])
->>> a == b
-array([False,  True, False,  True], dtype=bool)
->>> a > b
-array([False, False,  True, False], dtype=bool)
+.. image:: random_walk.png
+   :align: center 
 
-Logical operations:
+What is the typical distance from the origin of a random walker after ``t`` left
+or right jumps?
 
->>> a = np.array([1, 1, 0, 0], dtype=bool)
->>> b = np.array([1, 0, 1, 0], dtype=bool)
->>> a | b
-array([ True,  True,  True, False], dtype=bool)
->>> a & b
-array([ True, False, False, False], dtype=bool)
+.. image:: random_walk_schema.png
+   :align: center
 
-.. note::
+::
 
-   For arrays: "``&``" and "``|``" for logical operations, not
-   "``and``" and "``or``".
+    >>> nreal = 1000 # number of walks
+    >>> tmax = 200 # time during which we follow the walker
+    >>> # We randomly choose all the steps 1 or -1 of the walk
+    >>> walk = 2 * ( np.random.random_integers(0, 1, (nreal,tmax)) - 0.5 )
+    >>> np.unique(walk) # Verification : all steps are 1 or -1
+    array([-1.,  1.])
+    >>> # We build the walks by summing steps along the time
+    >>> cumwalk = np.cumsum(walk, axis=1) # axis = 1 : dimension of time
+    >>> sq_distance = cumwalk**2
+    >>> # We get the mean in the axis of the steps
+    >>> mean_sq_distance = np.mean(sq_distance, axis=0) 
+
+.. sourcecode:: ipython
+
+    In [39]: figure()
+    In [40]: plot(mean_sq_distance)
+    In [41]: figure()
+    In [42]: plot(np.sqrt(mean_sq_distance))
+
+.. image:: diffuse.png
+   :align: center
+   :scale: 70
+
+We find again that the distance grows like the square root of the time!
+
+**Exercise** : statistics on the number of women in french research (INSEE data)
+
+1. Get the following files ``organisms.txt`` and ``women_percentage.txt``
+   in the ``data`` directory. 
+
+2. Create a ``data`` array by opening the ``women_percentage.txt`` file
+   with ``np.loadtxt``. What is the shape of this array? 
+
+3. Columns correspond to year 2006 to 2001. Create a ``years`` array with
+   integers corresponding to these years.
+
+4. The different lines correspond to the research organisms whose names are
+   stored in the ``organisms.txt`` file. Create a ``organisms`` array by
+   opening this file. Beware that ``np.loadtxt`` creates float arrays by default,
+   and it must be specified to use strings instead: ``organisms =
+   np.loadtxt('organisms.txt', dtype=str)``
+
+5. Check that the number of lines of ``data`` equals the number of lines of the
+   organisms.
+
+6. What is the maximal percentage of women in all organisms, for all years taken
+   together? 
+
+7. Create an array with the temporal mean of the percentage of women for each
+   organism? (i.e. the mean of ``data`` along axis 1).
+
+8. Which organism had the highest percentage of women in 2004? (hint: np.argmax)
+
+9. Create a histogram of the percentage of women the different organisms in 2006
+   (hint: np.histogram, then matplotlib bar or plot for visualization)
+
+10. Create an array that contains the organism where the highest women's
+    percentage is found for the different years.
+
+**Answers** :ref:`stat_recherche`
+
+Fancy indexing
+--------------
+
+Numpy arrays can be indexed with slices, but also with boolean or integer arrays
+(**masks**). This method is called *fancy indexing*.
+
+**Masks** ::
+
+    >>> np.random.seed(3)
+    >>> a = np.random.random_integers(0, 20, 15)
+    >>> a
+    array([10,  3,  8,  0, 19, 10, 11,  9, 10,  6,  0, 20, 12,  7, 14])
+    >>> (a%3 == 0)
+    array([False,  True, False,  True, False, False, False,  True, False,
+            True,  True, False,  True, False, False], dtype=bool)
+    >>> mask = (a%3 == 0)
+    >>> extract_from_a = a[mask] #one could directly write a[a%3==0]
+    >>> extract_from_a # extract a sub-array with the mask
+    array([ 3,  0,  9,  6,  0, 12])
+
+Extracting a sub-array using a mask produces a copy of this sub-array, not a
+view::
+
+    >>> extract_from_a = -1
+    >>> a
+    array([10,  3,  8,  0, 19, 10, 11,  9, 10,  6,  0, 20, 12,  7, 14])
 
 
-Shape mismatches:
+Indexing with a mask can be very useful to assign a new value to a sub-array::
 
->>> a
-array([1, 2, 3, 4])
->>> a + np.array([1, 2])
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-ValueError: shape mismatch: objects cannot be broadcast to a single shape
+    >>> a[mask] = 0 
+    >>> a
+    array([10,  0,  8,  0, 19, 10, 11,  0, 10,  0,  0, 20,  0,  7, 14])
 
-**'Broadcast'?** We'll return to that later.
+**Indexing with an array of integers** ::
 
-.. arithmetic is 'vectorized'
+    >>> a = np.arange(10)
+    >>> a[::2] +=3 #to avoid having always the same np.arange(10)...
+    >>> a
+    array([ 3,  1,  5,  3,  7,  5,  9,  7, 11,  9])
+    >>> a[[2, 5, 1, 8]] # or a[np.array([2, 5, 1, 8])]
+    array([ 5,  5,  1, 11])
 
-.. logical operations are also 'vectorized'
+Indexing can be done with an array of integers, where the same index is repeated
+several time::
 
-.. EXE: generate array [2**0, 2**1, 2**2, 2**3, 2**4]
-.. EXE: generate array a_j = 2^(3*j) - j
-.. EXE: subtract two arrays of the same shape
-.. EXE: try to subtract two arrays of non-matching shape
-.. EXE: generate a mask indicating which elements are 1
+    >>> a[[2, 3, 2, 4, 2]]
+    array([5, 3, 5, 7, 5])
+
+New values can be assigned with this kind of indexing::
+
+    >>> a[[9, 7]] = -10
+    >>> a
+    array([  3,   1,   5,   3,   7,   5,   9, -10,  11, -10])
+    >>> a[[2, 3, 2, 4, 2]] +=1
+    >>> a
+    array([  3,   1,   6,   4,   8,   5,   9, -10,  11, -10])
+
+When a new array is created by indexing with an array of integers, the new array
+has the same shape than the array of integers::
+
+    >>> a = np.arange(10)
+    >>> idx = np.array([[3, 4], [9, 7]])
+    >>> a[idx]
+    array([[3, 4],
+           [9, 7]])
+    >>> b = np.arange(10) 
+
+    >>> a = np.arange(12).reshape(3, 4)
+    >>> a
+    array([[ 0,  1,  2,  3],
+           [ 4,  5,  6,  7],
+           [ 8,  9, 10, 11]])
+    >>> i = np.array([0, 1, 1, 2])
+    >>> j = np.array([2, 1, 3, 3])
+    >>> a[i, j]
+    array([ 2,  5,  7, 11])
+
+    >>> i = np.array([[0, 1], [1, 2]])
+    >>> j = np.array([[2, 1], [3, 3]])
+    >>> i
+    array([[0, 1],
+           [1, 2]])
+    >>> j
+    array([[2, 1],
+           [3, 3]])
+    >>> a[i, j]
+    array([[ 2,  5],
+           [ 7, 11]])
+
+.. image:: numpy_fancy_indexing.png
+   :align: center
+
+**Exercise** 
+
+Let's take the same statistics about the percentage of women in the research
+(``data`` and ``organisms`` arrays)
+
+1. Create a ``sup30`` array of the same size than ``data`` with a value of 1 if
+   the value of ``data`` is greater than 30%, 0 otherwise.
+
+2. Create an array containing the organism having the greatest percentage of
+women of each year.
+
+**Answers** :ref:`stat_recherche`
 
 
-Basic linear algebra
---------------------
+Broadcasting
+------------
 
-Matrix multiplication:
+Basic operations on ``numpy`` arrays (addition, etc.) are done element by
+element, thus work on arrays of the same size. Nevertheless, it's possible to do
+operations on arrays of different sizes if ``numpy`` can transform these arrays
+so that they all have the same size: this conversion is called **broadcasting**.
 
->>> a = np.triu(np.ones((3, 3)), 1)   # see help(np.triu)
->>> a
-array([[ 0.,  1.,  1.],
-       [ 0.,  0.,  1.],
-       [ 0.,  0.,  0.]])
->>> b = np.diag([1, 2, 3])
->>> a.dot(b)
-array([[ 0.,  2.,  3.],
-       [ 0.,  0.,  3.],
-       [ 0.,  0.,  0.]])
->>> np.dot(a, a)
-array([[0, 0, 1],
-       [0, 0, 0],
-       [0, 0, 0]])
+The image below gives an example of broadcasting:
 
-Transpose:
+.. image:: numpy_broadcasting.png
+   :align: center
 
->>> a.T
-array([[ 0.,  0.,  0.],
-       [ 1.,  0.,  0.],
-       [ 1.,  1.,  0.]])
+which gives the following in Ipython::
 
-Inverses and linear equation systems:
+    >>> a = np.arange(0, 40, 10)
+    >>> b = np.arange(0, 3)
+    >>> a = a.reshape((4,1)) # a must be changed into a vertical array
+    >>> a + b
+    array([[ 0,  1,  2],
+           [10, 11, 12],
+           [20, 21, 22],
+           [30, 31, 32]])
 
->>> A = a + b
->>> A
-array([[ 1.,  1.,  1.],
-       [ 0.,  2.,  1.],
-       [ 0.,  0.,  3.]])
->>> B = np.linalg.inv(A)
->>> B.dot(A)
-array([[ 1.,  0.,  0.],
-       [ 0.,  1.,  0.],
-       [ 0.,  0.,  1.]])
+We actually already used broadcasting without knowing it!::
 
->>> x = np.linalg.solve(A, [1, 2, 3])
->>> x
-array([-0.5,  0.5,  1. ])
->>> A.dot(x)
-array([ 1.,  2.,  3.])
+    >>> a = np.arange(20).reshape((4,5))
+    >>> a
+    array([[ 0,  1,  2,  3,  4],
+           [ 5,  6,  7,  8,  9],
+           [10, 11, 12, 13, 14],
+           [15, 16, 17, 18, 19]])
+    >>> a[0] = 1 # we assign an array of dimension 0 to an array of dimension 1
+    >>> a[:3] = np.arange(1,6)
+    >>> a
+    array([[ 1,  2,  3,  4,  5],
+           [ 1,  2,  3,  4,  5],
+           [ 1,  2,  3,  4,  5],
+           [15, 16, 17, 18, 19]])
 
-Eigenvalues:
+We can even use fancy indexing and broadcasting at the same time. Take again the
+same example as above::
+::
 
->>> np.linalg.eigvals(A)
-array([ 1.,  2.,  3.])
+    >>> a = np.arange(12).reshape(3,4)
+    >>> a
+    array([[ 0,  1,  2,  3],
+           [ 4,  5,  6,  7],
+           [ 8,  9, 10, 11]])
+    >>> i = np.array( [ [0,1],                        
+    ...              [1,2] ] )
+    >>> a[i, 2] # same as a[i, 2*np.ones((2,2), dtype=int)]
+    array([[ 2,  6],
+           [ 6, 10]])
 
-... and so on, see ``help(np.linalg)``
+Broadcasting seems a bit magical, but it is actually quite natural to use it
+when we want to solve a problem whose output data is an array with more
+dimensions than input data.
 
-.. A.dot(B)    [or np.dot(A, B)]
+**Example**: let's construct an array of distances (in miles) between cities of
+Route 66: Chicago, Springfield, Saint-Louis, Tulsa,
+Oklahoma City, Amarillo, Santa Fe, Albuquerque, Flagstaff and Los
+Angeles. 
 
-.. transposes
+::
 
-.. linear algebra: np.linalg -- least squares, eigenvalues
+    >>> mileposts = np.array([0, 198, 303, 736, 871, 1175, 1475, 1544,
+    ...        1913, 2448])
+    >>> distance_array = np.abs(mileposts - mileposts[:,np.newaxis])
+    >>> distance_array
+    array([[   0,  198,  303,  736,  871, 1175, 1475, 1544, 1913, 2448],
+           [ 198,    0,  105,  538,  673,  977, 1277, 1346, 1715, 2250],
+           [ 303,  105,    0,  433,  568,  872, 1172, 1241, 1610, 2145],
+           [ 736,  538,  433,    0,  135,  439,  739,  808, 1177, 1712],
+           [ 871,  673,  568,  135,    0,  304,  604,  673, 1042, 1577],
+           [1175,  977,  872,  439,  304,    0,  300,  369,  738, 1273],
+           [1475, 1277, 1172,  739,  604,  300,    0,   69,  438,  973],
+           [1544, 1346, 1241,  808,  673,  369,   69,    0,  369,  904],
+           [1913, 1715, 1610, 1177, 1042,  738,  438,  369,    0,  535],
+           [2448, 2250, 2145, 1712, 1577, 1273,  973,  904,  535,    0]])
 
-.. EXE: compute a product of two matrices
-.. EXE: solve a linear equation system
-.. EXE: compute a pseudoinverse
-.. EXE: write a routine to verify that a matrix is Hermitian
-.. EXE: compare the computed pseudoinverse with what lstsq gives
 
-Basic reductions
-----------------
+.. image:: route66.png
+   :align: center
+   :scale: 60
 
-Computing sums:
+.. warning:: Good practices
 
->>> x = np.array([1, 2, 3, 4])
->>> np.sum(x)
-10
->>> x.sum()
-10
+    In the previous example, we can note some good (and bad) practices:
 
-Sum by rows and by columns:
+    * Give explicit variable names (no need of a comment to explain what is in
+      the variable)
 
-.. image:: reductions.png
+    * Put spaces after commas, around ``=``, etc. A certain number of rules
+      for writing "beautiful" code (and more importantly using the same
+      conventions as anybody else!) are given in the `Style Guide for Python
+      Code <http://www.python.org/dev/peps/pep-0008>`_ and the `Docstring
+      Conventions <http://www.python.org/dev/peps/pep-0257>`_ page (to manage
+      help strings).
 
->>> x = np.array([[1, 1], [2, 2]])
->>> x
-array([[1, 1],
-       [2, 2]])
->>> x.sum(axis=0)   # columns (first dimension)
-array([3, 3])
->>> x[:,0].sum(), x[:,1].sum()
-(3, 3)
->>> x.sum(axis=1)   # rows (second dimension)
-array([2, 4])
->>> x[0,:].sum(), x[1,:].sum()
-(2, 4)
+    * Except some rare cases, write variable names and comments in English.
 
-Same idea in higher dimensions:
+A lot of grid-based or network-based problems can also use broadcasting. For instance,
+if we want to compute the distance from the origin of points on a 10x10 grid, we
+can do::
 
->>> x = np.random.rand(2, 2, 2)
->>> x.sum(axis=2)[0,1]
-1.1600112273698793
->>> x[0,1,:].sum()
-1.1600112273698793
+    >>> x, y = np.arange(5), np.arange(5)
+    >>> distance = np.sqrt(x**2 + y[:, np.newaxis]**2)
+    >>> distance
+    array([[ 0.        ,  1.        ,  2.        ,  3.        ,  4.        ],
+           [ 1.        ,  1.41421356,  2.23606798,  3.16227766,  4.12310563],
+           [ 2.        ,  2.23606798,  2.82842712,  3.60555128,  4.47213595],
+           [ 3.        ,  3.16227766,  3.60555128,  4.24264069,  5.        ],
+           [ 4.        ,  4.12310563,  4.47213595,  5.        ,  5.65685425]])
 
-**Other reductions** --- works the same way (and take ``axis=``)
 
-- Statistics:
+The values of the distance array can be represented in colour, thanks to the
+``pylab.imshow`` function (syntax: ``pylab.imshow(distance)``. See help for
+other options).
 
-  >>> x = np.array([1, 2, 3, 1])
-  >>> y = np.array([[1, 2, 3], [5, 6, 1]])
-  >>> x.mean()
-  1.75
-  >>> np.median(x)
-  1.5
-  >>> np.median(y, axis=-1) # last axis
-  array([ 2.,  5.])
+.. image:: distance.png
+    :align: center
+    :scale: 70
 
-  >>> x.std()          # full population standard dev.
-  0.82915619758884995
-  >>> x.std(ddof=1)    # sample std (with N-1 in divisor)
-  0.9574271077563381
+**Remark** : the ``numpy.ogrid`` function allows to directly create vectors x
+and y of the previous example, with two "significant dimensions"::
 
-- Extrema:
+    >>> x, y = np.ogrid[0:5, 0:5]
+    >>> x, y
+    (array([[0],
+           [1],
+           [2],
+           [3],
+           [4]]), array([[0, 1, 2, 3, 4]]))
+    >>> x.shape, y.shape
+    ((5, 1), (1, 5))
+    >>> distance = np.sqrt(x**2 + y**2)
 
-  >>> x = np.array([1, 3, 2])
-  >>> x.min()
-  1
-  >>> x.max()
-  3
+So, ``np.ogrid`` is very useful as soon as we have to handle computations on a
+network. On the other hand, ``np.mgrid`` directly provides matrices full of
+indices for cases where we can't (or don't want to) benefit from broadcasting::
 
-  >>> x.argmin()  # index of minimum
-  0
-  >>> x.argmax()  # index of maximum
-  1
+    >>> x, y = np.mgrid[0:4, 0:4]
+    >>> x
+    array([[0, 0, 0, 0],
+           [1, 1, 1, 1],
+           [2, 2, 2, 2],
+           [3, 3, 3, 3]])
+    >>> y
+    array([[0, 1, 2, 3],
+           [0, 1, 2, 3],
+           [0, 1, 2, 3],
+           [0, 1, 2, 3]])
 
-- Logical operations:
+ 
+ 
+Synthesis exercises: framing Lena
+---------------------------------------
 
-  >>> np.all([True, True, False])
-  False
-  >>> np.any([True, True, False])
-  True
+Let's do some manipulations on numpy arrays by starting with the famous image of
+Lena (http://www.cs.cmu.edu/~chuck/lennapg/). ``scipy`` provides a 2D array of
+this image with the ``scipy.lena`` function::
 
-  .. note::
+    >>> import scipy
+    >>> lena = scipy.lena()
 
-     Can be used for array comparisons:
+Here are a few images we will be able to obtain with our manipulations:
+use different colormaps, crop the image, change some parts of the image.
 
-     >>> a = np.zeros((100, 100))
-     >>> np.any(a != 0)
-     False
-     >>> np.all(a == a)
-     True
+.. image:: lenas.png
+   :align: center
 
-     >>> a = np.array([1, 2, 3, 2])
-     >>> b = np.array([2, 2, 3, 2])
-     >>> c = np.array([6, 4, 4, 5])
-     >>> ((a <= b) & (b <= c)).all()
-     True
+* Let's use the imshow function of pylab to display the image.
 
-- ... and many more (best to learn as you go).
+  .. sourcecode:: ipython
+      
+      In [3]: import pylab 
+      In [4]: lena = scipy.lena()
+      In [5]: pylab.imshow(lena)
 
-.. topic:: Example: data statistics
+* Lena is then displayed in false colors. A colormap must be specified for her
+  to be displayed in grey.
 
-  Data in ``populations.txt`` describes the populations
-  of hares and lynxes (and carrots) in northern Canada during 20 years.
+  .. sourcecode:: ipython
+  
+      In [6]: pylab.imshow(lena, pylab.cm.gray)
+      In [7]: # ou
+      In [8]: gray()
 
-  .. plot::
+* Create an array of the image with a narrower centering : for example,
+  remove 30 pixels from all the borders of the image. To check the result,
+  display this new array with ``imshow``.
 
-     We can first plot the data:
+  .. sourcecode:: ipython
+  
+      In [9]: crop_lena = lena[30:-30,30:-30]
 
-     >>> data = np.loadtxt('../../../data/populations.txt')
-     >>> year, hares, lynxes, carrots = data.T  # trick: columns to variables
+* We will now frame Lena's face with a black locket. For this, we need to
 
-     >>> plt.axes([0.2, 0.1, 0.5, 0.8])
-     >>> plt.plot(year, hares, year, lynxes, year, carrots)
-     >>> plt.legend(('Hare', 'Lynx', 'Carrot'), loc=(1.05, 0.5))
-     >>> plt.show()
+    * create a mask corresponding to the pixels we want to be black.
+      The mask is defined by this condition ``(y-256)**2 + (x-256)**2``
+      
+    .. sourcecode:: ipython
+     
+        In [15]: y, x = np.ogrid[0:512,0:512] # x and y indices of pixels 
+        In [16]: y.shape, x.shape
+        Out[16]: ((512, 1), (1, 512))
+        In [17]: centerx, centery = (256, 256) # center of the image
+        In [18]: mask = ((y - centery)**2 + (x - centerx)**2)> 230**2
+     
+  then
 
-     The mean populations over time:
+    * assign the value 0 to the pixels of the image corresponding to the mask.
+      The syntax is extremely simple and intuitive:
 
-     >>> populations = data[:,1:]
-     >>> populations.mean(axis=0)
-     array([ 34080.95238095,  20166.66666667,  42400.        ])
+    .. sourcecode:: ipython
+     
+        In [19]: lena[mask]=0
+        In [20]: imshow(lena)
+        Out[20]: <matplotlib.image.AxesImage object at 0xa36534c>
 
+* Subsidiary question : copy all instructions of this exercise in a script
+  called ``lena_locket.py`` then execute this script in iPython with ``%run
+  lena_locket.py``.
+
+.. topic:: Conclusion : what do you need to know about numpy arrays to start?
+
+    * Know how to create arrays : ``array``, ``arange``, ``ones``,
+      ``zeros``.
+
+<<<<<<< HEAD
      The sample standard deviations:
 
      >>> populations.std(axis=0, ddof=1)
@@ -2533,12 +2530,21 @@ operation needs to make a copy here.
 
 Summary
 -------
+=======
+    * Know the shape of the array with ``array.shape``, then use slicing
+      to obtain different views of the array: ``array[::2]``,
+      etc. Change the shape of the array using ``reshape``.
 
-- Numpy array: block of memory + indexing scheme + data type description
+    * Obtain a subset of the elements of an array and/or modify their values
+      with masks::
+  
+      >>> a[a<0] = 0
 
-- Indexing: strides
+    * Know miscellaneous operations on arrays, like finding the mean or max
+      (``array.max()``, ``array.mean()``). No need to retain everything, but
+      have the reflex to search in the documentation (see :ref:`help`) !!
 
-  ``byte_position = np.sum(arr.strides * indices)``
+    * For advanced use: master the indexing with arrays of integers, as well as
+      broadcasting. Know more functions of numpy allowing to handle array
+      operations.
 
-- Various tricks can you do by playing with the strides (stuff for an
-  advanced tutorial it is)
